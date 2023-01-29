@@ -67,12 +67,15 @@ else
 
     private Modal PlaylistDialog { get; set; }
     private List<Models.Playlist> Playlists;
+    public string NewPlaylistName { get; set; }
     private Artist Artist;
     private List<PlaylistTrack> Tracks;
     private DbContext DbContext;
     private PlaylistTrack SelectedTrack;
     private string InfoMessage;
     private string CurrentUserId;
+    public long selectedPlaylistId { get; set; }
+
 
     protected override async Task OnInitializedAsync()
     {
@@ -125,10 +128,14 @@ else
         PlaylistDialog.Open();
     }
 
-    private void AddTrackToPlaylist()
+    private async void AddTrackToPlaylist()
     {
         CloseInfoMessage();
         InfoMessage = $"Track {Artist.Name} - {SelectedTrack.AlbumTitle} - {SelectedTrack.TrackName} added to playlist {{playlist name}}.";
+
+        var userId = await GetUserId();
+
+        PlaylistRepository.AddTrackToPlaylist(userId, selectedPlaylistId, NewPlaylistName, SelectedTrack.TrackId);
         PlaylistDialog.Close();
     }
 
@@ -137,6 +144,10 @@ else
         InfoMessage = "";
     }
 
+    private async void ExistingPlaylistChange(ChangeEventArgs arg)
+    {
+        selectedPlaylistId = long.Parse(arg.Value.ToString());
+    }
 
 }
 
@@ -168,7 +179,7 @@ else
         </div>
         <div class="form-group mb-2">
             <label for="NewPlaylist">Create new playlist</label>
-            <input type="text" id="NewPlaylist" class="form-control" placeholder="Name for the new playlist">
+            <input type="text" id="NewPlaylist" class="form-control" @bind-value=NewPlaylistName placeholder="Name for the new playlist">
         </div>
     </Body>
     <Footer>

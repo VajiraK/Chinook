@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Chinook.Models;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
 namespace Chinook.Shared.DataAccess
@@ -61,5 +62,75 @@ namespace Chinook.Shared.DataAccess
                 .Where(up => up.UserId == CurrentUserId).Select(up => up.Playlist).ToList();
             return playlists;
         }
+
+        public async void DeletePlaylist(long playlistId)
+        {
+            var DbContext = await _DbFactory.CreateDbContextAsync();
+
+            //Remove playlist reference for userPlaylist
+            var userPlaylist = DbContext.UserPlaylists.SingleOrDefault(up => up.PlaylistId == playlistId);
+            DbContext.UserPlaylists.Remove(userPlaylist);
+
+            //Get tracks populated playlist
+            var playlist = DbContext.Playlists.Include(t => t.Tracks)
+                                                            .SingleOrDefault(p => p.PlaylistId == playlistId);
+
+            //Clear tracks for the playlist from PlalylistTracks
+            playlist.Tracks.Clear();
+
+            //Delete the playlist
+            DbContext.Playlists.Remove(playlist);
+
+            await DbContext.SaveChangesAsync();
+        }
+
+        public async void AddTrackToPlaylist(string userId,
+                                        long selectedPlaylistId,
+                                        string newPlaylistName,
+                                        long trackId)
+        {
+            var DbContext = await _DbFactory.CreateDbContextAsync();
+            //Track will be added to this playlist
+            long currentPlaylistId = selectedPlaylistId;
+
+            //Check if user needs to create a new playlist
+            if (newPlaylistName != null)
+            {
+                //Get next playlist id
+                long nextPlaylistId = DbContext.Playlists.Count() + 1;
+                currentPlaylistId = nextPlaylistId;
+
+                Models.Playlist playlist = new()
+                {
+                    PlaylistId = nextPlaylistId,
+                    Name = newPlaylistName
+                };
+
+                //Add new playlist
+                DbContext.Playlists.Add(playlist);
+
+                //Add mapping to UserPlaylist
+                UserPlaylist up = new()
+                {
+                    UserId = userId,
+                    PlaylistId = nextPlaylistId
+                };
+
+                //Add new playlist to the DB
+                DbContext.UserPlaylists.Add(up);
+                await DbContext.SaveChangesAsync();
+            }
+
+            //Get tracks populated playlist
+            var newPlaylist = DbContext.Playlists.Include(t => t.Tracks)
+                                                            .SingleOrDefault(p => p.PlaylistId == currentPlaylistId);
+
+            //Add track to the playlist
+            var track = DbContext.Tracks.SingleOrDefault(t => t.TrackId == trackId);
+            newPlaylist.Tracks.Add(track);
+
+            DbContext.SaveChangesAsync();
+        }
+
     }
 }
