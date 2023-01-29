@@ -13,6 +13,12 @@ namespace Chinook.Shared.DataAccess
             _DbFactory = dbFactory;
         }
 
+        public async Task<Models.Playlist> GetPlaylistById(long PlaylistId)
+        {
+            var DbContext = await _DbFactory.CreateDbContextAsync();
+            return DbContext.Playlists.SingleOrDefault(pl => pl.PlaylistId == PlaylistId);
+        }
+
         public async Task<ClientModels.Playlist> GetPlaylistById(long PlaylistId, string CurrentUserId)
         {
             var DbContext = await _DbFactory.CreateDbContextAsync();
@@ -169,6 +175,15 @@ namespace Chinook.Shared.DataAccess
             };
 
             DbContext.SaveChangesAsync();
+        }
+
+        public async void RenamePlaylist(long playlistId, string newPlaylistName)
+        {
+            var DbContext = await _DbFactory.CreateDbContextAsync();
+            var currentPlaylit = await this.GetPlaylistById(playlistId);
+            currentPlaylit.Name = newPlaylistName;
+            DbContext.Playlists.Update(currentPlaylit);
+            DbContext.SaveChanges();
         }
     }
 }

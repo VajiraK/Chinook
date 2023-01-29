@@ -1,5 +1,8 @@
-﻿@using Chinook.Shared.DataAccess;
+﻿@using Chinook.ClientModels;
+@using Chinook.Shared.DataAccess;
 @using System.Security.Claims;
+@using Microsoft.Extensions.Options;
+
 <div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid">
         <a class="navbar-brand" href="">Chinook</a>
@@ -17,40 +20,46 @@
             </NavLink>
         </div>
         <div class="nav-item px-3">
-            <NavLink class="nav-link" href="playlist/1">
+            <NavLink class="nav-link" href=@("playlist/" + @favoriteTracksConfig.Value.FavoriteTracksId)>
                 <i class="bi bi-music-note-list me-3" style="font-size: 1.25em"></i>My favorite tracks
             </NavLink>
         </div>
 
         @foreach (var pl in Playlists)
         {
-                <div class="nav-item px-3">
-                    <NavLink class="nav-link" href=@("playlist/" + @pl.PlaylistId)>
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href=@("playlist/" + @pl.PlaylistId)>
                     @* Playlist name *@
-                        <i class="bi bi-music-note-list me-3" style="font-size: 1.25em"></i>
-                        <span>@pl.Name</span>
+                    <i class="bi bi-music-note-list me-3" style="font-size: 1.25em"></i>
+                    <span>@pl.Name</span>
 
                     @* Delete icon*@
-                        <a href="#" class="m-1" title="Delete playlist" @onclick="@(() => DeletePlaylist(@pl.PlaylistId))" @onclick:preventDefault>
-                            <i class="bi bi-trash"></i>
-                        </a>
-                    </NavLink>
-                </div>
+                    <a href="#" class="m-1" title="Delete playlist" @onclick="@(() => DeletePlaylist(@pl.PlaylistId))" @onclick:preventDefault>
+                        <i class="bi bi-trash"></i>
+                    </a>
+
+                    @* Edit icon*@
+                    <a href="#" class="m-1" title="Rename playlist" @onclick="@(() => RenamePlaylist(@pl.PlaylistId))" @onclick:preventDefault>
+                        <i class="bi bi-pen"></i>
+                    </a>
+                </NavLink>
+            </div>
         }
     </nav>
 </div>
 
 @code {
-    private List<Models.Playlist> Playlists;
-    private bool collapseNavMenu = true;
-    private string? NavMenuCssClass => collapseNavMenu ? "collapse" : null;
     [Inject] IPlaylistRepository PlaylistRepository { get; set; }
+    [Inject] IOptions<FavoriteTracksConfig> favoriteTracksConfig { get; set; }
     [CascadingParameter] private Task<AuthenticationState> authenticationState { get; set; }
 
-    private void ToggleNavMenu()
-    {
-        collapseNavMenu = !collapseNavMenu;
-    }
+    private List<Models.Playlist> Playlists;
+    private bool collapseNavMenu = true;
+    public string NewPlaylistName { get; set; }
+    private Modal PlaylistRenameDialog { get; set; }
+    private long currentPlaylit;
+
+    private string? NavMenuCssClass => collapseNavMenu ? "collapse" : null;
 
     protected override async Task OnInitializedAsync()
     {
@@ -64,15 +73,55 @@
         return userId;
     }
 
+    private async void RefreshPlayList()
+    {
+        var CurrentUserId = await GetUserId();
+        Playlists = await PlaylistRepository.GetAllPlaylistForUser(CurrentUserId);
+    }
+
     private async void DeletePlaylist(long playlistId)
     {
         PlaylistRepository.DeletePlaylist(playlistId);
         RefreshPlayList();
     }
 
-    private async void RefreshPlayList()
+    private async void RenamePlaylist(long playlistId)
     {
-        var CurrentUserId = await GetUserId();
-        Playlists = await PlaylistRepository.GetAllPlaylistForUser(CurrentUserId);
+        currentPlaylit = playlistId;
+        var playlist = await PlaylistRepository.GetPlaylistById(playlistId);
+        NewPlaylistName = playlist.Name;
+        PlaylistRenameDialog.Open();
+    }
+
+    private async void SaveNewNameForPlaylist()
+    {
+        PlaylistRepository.RenamePlaylist(currentPlaylit, NewPlaylistName);
+        PlaylistRenameDialog.Close();
+        RefreshPlayList();
+    }
+
+    private void ToggleNavMenu()
+    {
+        collapseNavMenu = !collapseNavMenu;
+    }
+
+    private async void AddTrackToPlaylist()
+    {
+        PlaylistRenameDialog.Close();
     }
 }
+
+<Modal @ref="PlaylistRenameDialog">
+    <Title>
+        Rename playlist
+    </Title>
+    <Body>
+        <div class="form-group mb-2">
+            <label for="RenamePlaylist">Rename playlist</label>
+            <input type="text" id="RenamePlaylist" class="form-control" @bind-value=NewPlaylistName placeholder="Edit Playlist name">
+        </div>
+    </Body>
+    <Footer>
+        <button class="btn btn-success" @onclick="SaveNewNameForPlaylist">Save</button>
+    </Footer>
+</Modal>
