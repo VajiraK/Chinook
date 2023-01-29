@@ -8,7 +8,10 @@
 <PageTitle>Index</PageTitle>
 
 <h1>Artists</h1>
-
+<div class="form-group mb-2">
+    <label for="SearchQuery">Search</label>
+    <input type="text" id="SearchQuery" class="form-control" @oninput="DoSearch" placeholder="Type artist name to search - this is case sensitive">
+</div>
 @if (Artists == null)
 {
     <Loading />
@@ -42,8 +45,17 @@ else
 
     protected override async Task OnInitializedAsync() {
         await InvokeAsync(StateHasChanged);
-        Artists = await ArtistRepository.GetArtistList();
+        Artists = await ArtistRepository.GetArtistsFiltered(string.Empty);
         //Artists = await GetArtists();
+    }
+
+    /// <summary>
+    ///     oninput event handler for search field
+    /// </summary>
+    /// <param name="arg"></param>
+    private async void DoSearch(ChangeEventArgs arg)
+    {
+        Artists = await ArtistRepository.GetArtistsFiltered(arg.Value.ToString());
     }
 
     //public async Task<List<Artist>> GetArtists()

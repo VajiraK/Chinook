@@ -8,13 +8,22 @@ explanation of the changes you made.
 	* Used dependency injection to inject Data access objects via ServiceCollection Extension method.
 
 2. Favorite / unfavorite tracks. An automatic playlist should be created named "My favorite tracks"
+	
+
 4. The user's playlists should be listed in the left navbar. If a playlist is added (or modified), this should 
 	reflect in the left navbar. There is already one playlist link in the Nav Menu as an example.
 3. Add tracks to a playlist (existing or new one). The dialog is already created but not yet finished.
 5. The user should be able to remove tracks from the playlist.
 6. User should be able to rename the playlist
 6. User should be able to remove the whole playlist
+
 7. Search for artist name
+
+	* Add new input field to the index.
+	* Handle input event of search input field.
+	* Pass search query to the data access layer and show filtered Artist list.
+	* Search happens as user type the query.
+	* Search is case-sensitive.
 
 When creating a user account, you will see this:
 "This app does not currently have a real email sender registered, see these docs for how to configure a real email sender. 

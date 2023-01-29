@@ -19,10 +19,23 @@ namespace Chinook.Shared.DataAccess
             return Artist;
         }
 
-        public async Task<List<Artist>> GetArtistList()
+        /// <summary>
+        /// If searchQuery is blank returns all artists
+        /// </summary>
+        /// <returns>Artist List</returns>
+        public async Task<List<Artist>> GetArtistsFiltered(string searchQuery)
         {
             var DbContext = await _DbFactory.CreateDbContextAsync();
-            return DbContext.Artists.ToList();
+
+            if (searchQuery == string.Empty)
+            {
+                return DbContext.Artists.ToList();
+            }
+            else
+            {
+                return DbContext.Artists.Where(a => a.Name.Contains(searchQuery)).ToList();
+            }
+
         }
     }
 }
