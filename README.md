@@ -10,14 +10,17 @@ explanation of the changes you made.
 2. Favorite / unfavorite tracks. An automatic playlist should be created named "My favorite tracks"
 	
 
-4. The user's playlists should be listed in the left navbar. If a playlist is added (or modified), this should 
+3. The user's playlists should be listed in the left navbar. If a playlist is added (or modified), this should 
 	reflect in the left navbar. There is already one playlist link in the Nav Menu as an example.
-3. Add tracks to a playlist (existing or new one). The dialog is already created but not yet finished.
+4. Add tracks to a playlist (existing or new one). The dialog is already created but not yet finished.
 5. The user should be able to remove tracks from the playlist.
 6. User should be able to rename the playlist
-6. User should be able to remove the whole playlist
 
-7. Search for artist name
+
+7. User should be able to remove the whole playlist
+
+
+8. Search for artist name
 
 	* Add new input field to the index.
 	* Handle input event of search input field.
