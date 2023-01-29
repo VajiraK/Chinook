@@ -9,7 +9,7 @@ written explanation of the changes you made.
 
 2. Favorite / unfavorite tracks. An automatic playlist should be created named "My favorite tracks"
 
-	* Add dependancy injected config to customize favorits playlist name and id if needed. This is not requred for the task
+	* Add dependency injected config to customize favorite playlist name and ID if needed. This is not required for the task
 	  but done for more flexibility.
 	* Favorites playlist ID is configured as 0.
 	* ArtixtPage.razor  favorites add/remove implemented.
@@ -18,10 +18,15 @@ written explanation of the changes you made.
 3. The user's playlists should be listed in the left navbar. If a playlist is added (or modified), this should 
 	reflect in the left navbar. There is already one playlist link in the Nav Menu as an example.
 
+	* Added functionality to add new playlist and to populate user's left nav with playlists.
+	* Add to playlist Modal used to add new playlist.
 
 4. Add tracks to a playlist (existing or new one). The dialog is already created but not yet finished.
 
-
+	* New playlist will be created if new playlist input box is not empty.
+	* Implement logics to populate user's playlist dropdown of the modal.
+	* Adding Track to playlist - newly created of selected.
+	* BUG - New playlist doesn't appear until user refresh the view.
 
 5. The user should be able to remove tracks from the playlist.
 
@@ -30,7 +35,7 @@ written explanation of the changes you made.
 6. User should be able to rename the playlist
 
 	* Add modal to rename playlist.
-	* Once rename, changes reflect in UI imediatly.
+	* Once rename, changes reflect in UI immediately.
 
 7. User should be able to remove the whole playlist
 
@@ -42,7 +47,7 @@ written explanation of the changes you made.
 
 8. Search for artist name
 
-	* Add new input field to the index.
+	* Add a new input field to the index.
 	* Handle input event of search input field.
 	* Pass search query to the data access layer and show filtered Artist list.
 	* Search happens as user type the query.
