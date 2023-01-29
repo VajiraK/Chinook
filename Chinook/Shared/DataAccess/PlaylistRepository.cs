@@ -35,5 +35,23 @@ namespace Chinook.Shared.DataAccess
 
             return playlist;
         }
+
+        public async Task<List<ClientModels.PlaylistTrack>> GetTracks(long ArtistId, string CurrentUserId)
+        {
+            var DbContext = await _DbFactory.CreateDbContextAsync();
+
+            List<ClientModels.PlaylistTrack> Tracks = DbContext.Tracks.Where(a => a.Album.ArtistId == ArtistId)
+                                        .Include(a => a.Album)
+                                        .Select(t => new ClientModels.PlaylistTrack()
+                                        {
+                                            AlbumTitle = (t.Album == null ? "-" : t.Album.Title),
+                                            TrackId = t.TrackId,
+                                            TrackName = t.Name,
+                                            IsFavorite = t.Playlists.Where(p => p.UserPlaylists.Any(up => up.UserId == CurrentUserId && up.Playlist.Name == "Favorites")).Any()
+                                        })
+                                        .ToList();
+
+            return Tracks;
+        }
     }
 }

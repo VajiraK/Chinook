@@ -80,6 +80,7 @@ else
         CurrentUserId = await GetUserId();
 
         Artist = await ArtistRepository.GetArtist(ArtistId);
+        Tracks = await PlaylistRepository.GetTracks(ArtistId, CurrentUserId);
 
         //var DbContext = await DbFactory.CreateDbContextAsync();
 
