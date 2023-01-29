@@ -18,5 +18,11 @@ namespace Chinook.Shared.DataAccess
             var Artist = DbContext.Artists.SingleOrDefault(a => a.ArtistId == ArtistId);
             return Artist;
         }
+
+        public async Task<List<Artist>> GetArtistList()
+        {
+            var DbContext = await _DbFactory.CreateDbContextAsync();
+            return DbContext.Artists.ToList();
+        }
     }
 }
