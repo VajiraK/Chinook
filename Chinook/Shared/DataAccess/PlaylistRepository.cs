@@ -193,7 +193,7 @@ namespace Chinook.Shared.DataAccess
                                             AlbumTitle = (t.Album == null ? "-" : t.Album.Title),
                                             TrackId = t.TrackId,
                                             TrackName = t.Name,
-                                            IsFavorite = t.Playlists.Where(p => p.UserPlaylists.Any(up => up.UserId == CurrentUserId && up.Playlist.Name == "Favorites")).Any()
+                                            IsFavorite = t.Playlists.Where(p => p.UserPlaylists.Any(up => up.UserId == CurrentUserId && up.Playlist.Name == _FavoriteTracksConfig.Value.FavoriteTracksName)).Any()
                                         })
                                         .ToList();
 
