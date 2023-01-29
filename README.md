@@ -12,7 +12,17 @@ explanation of the changes you made.
 
 3. The user's playlists should be listed in the left navbar. If a playlist is added (or modified), this should 
 	reflect in the left navbar. There is already one playlist link in the Nav Menu as an example.
+
+	* Added functionality to add new playlist and to populate users left nav with playlists.
+	* "Add to playlist Modal" is used to add new playlist.
+
 4. Add tracks to a playlist (existing or new one). The dialog is already created but not yet finished.
+
+	* New playlist will be created if new paylist input box is not empty.
+	* Implement logics to populate user's playlist dropdown of the modal.
+	* Adding Track to playlist - newly created of selected.
+	* BUG - user must change selection dropdown to system to identify selected playlist.
+
 5. The user should be able to remove tracks from the playlist.
 6. User should be able to rename the playlist
 
