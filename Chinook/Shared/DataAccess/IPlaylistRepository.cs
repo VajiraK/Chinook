@@ -13,6 +13,7 @@
         Task<Models.Playlist> GetPlaylistById(long PlaylistId);
         void AddToFavorites(string userId, long trackId, FavoriteTracksConfig favTracksConfig);
         void RenamePlaylist(long playlistId, string newPlaylistName);
+        void RemoveTrackFromPlaylist(long trackId, long PlaylistId);
 
 
     }

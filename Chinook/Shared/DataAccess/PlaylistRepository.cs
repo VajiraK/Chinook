@@ -90,6 +90,20 @@ namespace Chinook.Shared.DataAccess
             await DbContext.SaveChangesAsync();
         }
 
+        public async void RemoveTrackFromPlaylist(long trackId, long PlaylistId)
+        {
+            var DbContext = await _DbFactory.CreateDbContextAsync();
+
+            //Get tracks populated playlist
+            Models.Playlist playlist = DbContext.Playlists.Include(t => t.Tracks)
+                                                            .SingleOrDefault(p => p.PlaylistId == PlaylistId);
+            //Get track to be deleted
+            var rTrack = playlist.Tracks.SingleOrDefault(t => t.TrackId == trackId);
+            playlist.Tracks.Remove(rTrack);
+
+            await DbContext.SaveChangesAsync();
+        }
+
         public async void AddTrackToPlaylist(string userId,
                                         long selectedPlaylistId,
                                         string newPlaylistName,
