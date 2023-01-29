@@ -10,6 +10,7 @@
         Task<List<ClientModels.PlaylistTrack>> GetTracks(long ArtistId, string CurrentUserId);
         Task<List<Models.Playlist>> GetAllPlaylistForUser(string CurrentUserId);
         void DeletePlaylist(long playlistId);
+        void AddToFavorites(string userId, long trackId, FavoriteTracksConfig favTracksConfig);
 
     }
 }

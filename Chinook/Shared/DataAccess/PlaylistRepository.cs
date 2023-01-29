@@ -132,5 +132,43 @@ namespace Chinook.Shared.DataAccess
             DbContext.SaveChangesAsync();
         }
 
+        public async void AddToFavorites(string userId, long trackId, FavoriteTracksConfig favTracksConfig)
+        {
+            var DbContext = await _DbFactory.CreateDbContextAsync();
+
+            //Try to get favorit playlist item
+            var favoritePlaylist = DbContext.Playlists.SingleOrDefault(pl => pl.PlaylistId == favTracksConfig.FavoriteTracksId);
+
+            if (favoritePlaylist == null)
+            {
+                //Need to create a favorit playlist
+                favoritePlaylist = new()
+                {
+                    PlaylistId = favTracksConfig.FavoriteTracksId,
+                    Name = favTracksConfig.FavoriteTracksName
+                };
+
+                DbContext.Playlists.Add(favoritePlaylist);
+                await DbContext.SaveChangesAsync();
+            }
+
+            //Get tracks populated playlist
+            favoritePlaylist = DbContext.Playlists.Include(t => t.Tracks)
+                                                            .SingleOrDefault(p => p.PlaylistId == favTracksConfig.FavoriteTracksId);
+
+
+            //Add track to the favorites playlist
+            var track = DbContext.Tracks.SingleOrDefault(t => t.TrackId == trackId);
+            favoritePlaylist.Tracks.Add(track);
+
+            //Add track to favorites
+            Models.PlaylistTrack playlistTrack = new()
+            {
+                PlaylistId = favTracksConfig.FavoriteTracksId,
+                TrackId = trackId
+            };
+
+            DbContext.SaveChangesAsync();
+        }
     }
 }

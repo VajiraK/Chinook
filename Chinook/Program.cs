@@ -1,6 +1,7 @@
 using Chinook;
 using Chinook.Areas.Identity;
 using Chinook.Models;
+using Chinook.Shared;
 using Chinook.Shared.DependencyInjection;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.EntityFrameworkCore;
@@ -8,6 +9,10 @@ using Microsoft.EntityFrameworkCore;
 var builder = WebApplication.CreateBuilder(args);
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+
+//Register favorites playlist configs
+var favoriteTracksConfig = builder.Services.Configure<FavoriteTracksConfig>(builder.Configuration.GetSection("FavoriteTracks"));
+
 builder.Services.AddDbContextFactory<ChinookContext>(opt => opt.UseSqlite(connectionString));
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 

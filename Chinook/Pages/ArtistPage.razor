@@ -6,6 +6,7 @@
 @using Chinook.Shared.DataAccess;
 @using Microsoft.EntityFrameworkCore
 @using System.Security.Claims;
+@using Microsoft.Extensions.Options;
 
 @if (!string.IsNullOrWhiteSpace(InfoMessage))
 {
@@ -61,21 +62,21 @@ else
 @code {
     [Parameter] public long ArtistId { get; set; }
     [CascadingParameter] private Task<AuthenticationState> authenticationState { get; set; }
+
     //[Inject] IDbContextFactory<ChinookContext> DbFactory { get; set; }
+    //private DbContext DbContext;
     [Inject] IArtistRepository ArtistRepository { get; set; }
     [Inject] IPlaylistRepository PlaylistRepository { get; set; }
-
-    private Modal PlaylistDialog { get; set; }
-    private List<Models.Playlist> Playlists;
+    [Inject] IOptions<FavoriteTracksConfig> favoriteTracksConfig { get; set; }
     public string NewPlaylistName { get; set; }
+    public long selectedPlaylistId { get; set; }
+    private Modal PlaylistDialog { get; set; }
     private Artist Artist;
-    private List<PlaylistTrack> Tracks;
-    private DbContext DbContext;
-    private PlaylistTrack SelectedTrack;
+    private List<ClientModels.PlaylistTrack> Tracks;
+    private ClientModels.PlaylistTrack SelectedTrack;
     private string InfoMessage;
     private string CurrentUserId;
-    public long selectedPlaylistId { get; set; }
-
+    private List<Models.Playlist> Playlists;
 
     protected override async Task OnInitializedAsync()
     {
@@ -109,9 +110,12 @@ else
         return userId;
     }
 
-    private void FavoriteTrack(long trackId)
+    private async void FavoriteTrack(long trackId)
     {
         var track = Tracks.FirstOrDefault(t => t.TrackId == trackId);
+        var userId = await GetUserId();
+        PlaylistRepository.AddToFavorites(userId, trackId, favoriteTracksConfig.Value);
+
         InfoMessage = $"Track {track.ArtistName} - {track.AlbumTitle} - {track.TrackName} added to playlist Favorites.";
     }
 
@@ -165,7 +169,7 @@ else
 
         <div class="form-group mb-2">
             <label for="ExistingPlaylist">Add to existing playlist</label>
-            <select class="form-control" id="ExistingPlaylist">
+            <select class="form-control" id="ExistingPlaylist" @onchange="ExistingPlaylistChange">
                 @foreach (var pl in Playlists)
                 {
                     <option value=@pl.PlaylistId>@pl.Name</option>
