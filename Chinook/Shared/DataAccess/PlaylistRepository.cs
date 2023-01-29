@@ -53,5 +53,13 @@ namespace Chinook.Shared.DataAccess
 
             return Tracks;
         }
+
+        public async Task<List<Models.Playlist>> GetAllPlaylistForUser(string CurrentUserId)
+        {
+            var DbContext = await _DbFactory.CreateDbContextAsync();
+            var playlists = DbContext.UserPlaylists
+                .Where(up => up.UserId == CurrentUserId).Select(up => up.Playlist).ToList();
+            return playlists;
+        }
     }
 }
