@@ -1,4 +1,6 @@
-﻿using Chinook.Models;
+﻿using Chinook.ClientModels;
+using Chinook.Models;
+using Microsoft.AspNetCore.Components;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
@@ -7,16 +9,12 @@ namespace Chinook.Shared.DataAccess
     public class PlaylistRepository : IPlaylistRepository
     {
         readonly IDbContextFactory<ChinookContext> _DbFactory;
+        readonly IOptions<FavoriteTracksConfig> _FavoriteTracksConfig;
 
-        public PlaylistRepository(IDbContextFactory<ChinookContext> dbFactory)
+        public PlaylistRepository(IDbContextFactory<ChinookContext> dbFactory, IOptions<FavoriteTracksConfig> favoriteTracksConfig)
         {
             _DbFactory = dbFactory;
-        }
-
-        public async Task<Models.Playlist> GetPlaylistById(long PlaylistId)
-        {
-            var DbContext = await _DbFactory.CreateDbContextAsync();
-            return DbContext.Playlists.SingleOrDefault(pl => pl.PlaylistId == PlaylistId);
+            _FavoriteTracksConfig = favoriteTracksConfig;
         }
 
         public async Task<ClientModels.Playlist> GetPlaylistById(long PlaylistId, string CurrentUserId)
@@ -35,7 +33,7 @@ namespace Chinook.Shared.DataAccess
                         ArtistName = t.Album.Artist.Name,
                         TrackId = t.TrackId,
                         TrackName = t.Name,
-                        IsFavorite = t.Playlists.Where(p => p.UserPlaylists.Any(up => up.UserId == CurrentUserId && up.Playlist.Name == "Favorites")).Any()
+                        IsFavorite = t.Playlists.Where(p => p.UserPlaylists.Any(up => up.UserId == CurrentUserId && up.Playlist.Name == _FavoriteTracksConfig.Value.FavoriteTracksName)).Any()
                     }).ToList()
                 })
                 .FirstOrDefault();
@@ -43,51 +41,15 @@ namespace Chinook.Shared.DataAccess
             return playlist;
         }
 
-        public async Task<List<ClientModels.PlaylistTrack>> GetTracks(long ArtistId, string CurrentUserId)
+        /// <summary>
+        /// Overload just to get a playlist modal instance by id
+        /// </summary>
+        /// <param name="PlaylistId"></param>
+        /// <returns>Playlist modal</returns>
+        public async Task<Models.Playlist> GetPlaylistById(long PlaylistId)
         {
             var DbContext = await _DbFactory.CreateDbContextAsync();
-
-            List<ClientModels.PlaylistTrack> Tracks = DbContext.Tracks.Where(a => a.Album.ArtistId == ArtistId)
-                                        .Include(a => a.Album)
-                                        .Select(t => new ClientModels.PlaylistTrack()
-                                        {
-                                            AlbumTitle = (t.Album == null ? "-" : t.Album.Title),
-                                            TrackId = t.TrackId,
-                                            TrackName = t.Name,
-                                            IsFavorite = t.Playlists.Where(p => p.UserPlaylists.Any(up => up.UserId == CurrentUserId && up.Playlist.Name == "Favorites")).Any()
-                                        })
-                                        .ToList();
-
-            return Tracks;
-        }
-
-        public async Task<List<Models.Playlist>> GetAllPlaylistForUser(string CurrentUserId)
-        {
-            var DbContext = await _DbFactory.CreateDbContextAsync();
-            var playlists = DbContext.UserPlaylists
-                .Where(up => up.UserId == CurrentUserId).Select(up => up.Playlist).ToList();
-            return playlists;
-        }
-
-        public async void DeletePlaylist(long playlistId)
-        {
-            var DbContext = await _DbFactory.CreateDbContextAsync();
-
-            //Remove playlist reference for userPlaylist
-            var userPlaylist = DbContext.UserPlaylists.SingleOrDefault(up => up.PlaylistId == playlistId);
-            DbContext.UserPlaylists.Remove(userPlaylist);
-
-            //Get tracks populated playlist
-            var playlist = DbContext.Playlists.Include(t => t.Tracks)
-                                                            .SingleOrDefault(p => p.PlaylistId == playlistId);
-
-            //Clear tracks for the playlist from PlalylistTracks
-            playlist.Tracks.Clear();
-
-            //Delete the playlist
-            DbContext.Playlists.Remove(playlist);
-
-            await DbContext.SaveChangesAsync();
+            return DbContext.Playlists.SingleOrDefault(pl => pl.PlaylistId == PlaylistId);
         }
 
         public async void RemoveTrackFromPlaylist(long trackId, long PlaylistId)
@@ -104,10 +66,18 @@ namespace Chinook.Shared.DataAccess
             await DbContext.SaveChangesAsync();
         }
 
+        public async Task<List<Models.Playlist>> GetAllPlaylistForUser(string CurrentUserId)
+        {
+            var DbContext = await _DbFactory.CreateDbContextAsync();
+            var playlists = DbContext.UserPlaylists
+                .Where(up => up.UserId == CurrentUserId).Select(up => up.Playlist).ToList();
+            return playlists;
+        }
+
         public async void AddTrackToPlaylist(string userId,
-                                        long selectedPlaylistId,
-                                        string newPlaylistName,
-                                        long trackId)
+                                                long selectedPlaylistId,
+                                                string newPlaylistName,
+                                                long trackId)
         {
             var DbContext = await _DbFactory.CreateDbContextAsync();
             //Track will be added to this playlist
@@ -152,6 +122,27 @@ namespace Chinook.Shared.DataAccess
             DbContext.SaveChangesAsync();
         }
 
+        public async void DeletePlaylist(long playlistId)
+        {
+            var DbContext = await _DbFactory.CreateDbContextAsync();
+
+            //Remove playlist reference for userPlaylist
+            var userPlaylist = DbContext.UserPlaylists.SingleOrDefault(up => up.PlaylistId == playlistId);
+            DbContext.UserPlaylists.Remove(userPlaylist);
+
+            //Get tracks populated playlist
+            var playlist = DbContext.Playlists.Include(t => t.Tracks)
+                                                            .SingleOrDefault(p => p.PlaylistId == playlistId);
+
+            //Clear tracks for the playlist from PlalylistTracks
+            playlist.Tracks.Clear();
+
+            //Delete the playlist
+            DbContext.Playlists.Remove(playlist);
+
+            await DbContext.SaveChangesAsync();
+        }
+
         public async void AddToFavorites(string userId, long trackId, FavoriteTracksConfig favTracksConfig)
         {
             var DbContext = await _DbFactory.CreateDbContextAsync();
@@ -191,6 +182,24 @@ namespace Chinook.Shared.DataAccess
             DbContext.SaveChangesAsync();
         }
 
+        public async Task<List<ClientModels.PlaylistTrack>> GetTracks(long ArtistId, string CurrentUserId)
+        {
+            var DbContext = await _DbFactory.CreateDbContextAsync();
+
+            List<ClientModels.PlaylistTrack> Tracks = DbContext.Tracks.Where(a => a.Album.ArtistId == ArtistId)
+                                        .Include(a => a.Album)
+                                        .Select(t => new ClientModels.PlaylistTrack()
+                                        {
+                                            AlbumTitle = (t.Album == null ? "-" : t.Album.Title),
+                                            TrackId = t.TrackId,
+                                            TrackName = t.Name,
+                                            IsFavorite = t.Playlists.Where(p => p.UserPlaylists.Any(up => up.UserId == CurrentUserId && up.Playlist.Name == "Favorites")).Any()
+                                        })
+                                        .ToList();
+
+            return Tracks;
+        }
+
         public async void RenamePlaylist(long playlistId, string newPlaylistName)
         {
             var DbContext = await _DbFactory.CreateDbContextAsync();
@@ -199,5 +208,6 @@ namespace Chinook.Shared.DataAccess
             DbContext.Playlists.Update(currentPlaylit);
             DbContext.SaveChanges();
         }
+
     }
 }

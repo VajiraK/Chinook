@@ -38,16 +38,10 @@ else
 }
 
 @code {
-    private List<Artist> Artists;
+
     [Inject] IArtistRepository ArtistRepository { get; set; }
 
-    //[Inject] IDbContextFactory<ChinookContext> DbFactory { get; set; }
-
-    protected override async Task OnInitializedAsync() {
-        await InvokeAsync(StateHasChanged);
-        Artists = await ArtistRepository.GetArtistsFiltered(string.Empty);
-        //Artists = await GetArtists();
-    }
+    private List<Artist> Artists;
 
     /// <summary>
     ///     oninput event handler for search field
@@ -58,11 +52,18 @@ else
         Artists = await ArtistRepository.GetArtistsFiltered(arg.Value.ToString());
     }
 
+    protected override async Task OnInitializedAsync()
+    {
+        await InvokeAsync(StateHasChanged);
+
+        Artists = await ArtistRepository.GetArtistsFiltered(string.Empty);
+    }
+
     //public async Task<List<Artist>> GetArtists()
-    //{   
+    //{
     //    var dbContext = await DbFactory.CreateDbContextAsync();
     //    var users = dbContext.Users.Include(a => a.UserPlaylists).ToList();
-        
+
     //    return dbContext.Artists.ToList();
     //}
 

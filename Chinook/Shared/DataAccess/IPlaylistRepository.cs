@@ -3,18 +3,16 @@
     public interface IPlaylistRepository
     {
         void AddTrackToPlaylist(string userId,
-                        long selectedPlaylistId,
-                        string newPlaylistName,
-                        long trackId);
-        Task<ClientModels.Playlist> GetPlaylistById(long PlaylistId, string CurrentUserId);
-        Task<List<ClientModels.PlaylistTrack>> GetTracks(long ArtistId, string CurrentUserId);
-        Task<List<Models.Playlist>> GetAllPlaylistForUser(string CurrentUserId);
+                                long selectedPlaylistId,
+                                string newPlaylistName,
+                                long trackId);
         void DeletePlaylist(long playlistId);
+        Task<List<Models.Playlist>> GetAllPlaylistForUser(string CurrentUserId);
+        Task<ClientModels.Playlist> GetPlaylistById(long PlaylistId, string CurrentUserId);
         Task<Models.Playlist> GetPlaylistById(long PlaylistId);
-        void AddToFavorites(string userId, long trackId, FavoriteTracksConfig favTracksConfig);
-        void RenamePlaylist(long playlistId, string newPlaylistName);
         void RemoveTrackFromPlaylist(long trackId, long PlaylistId);
-
-
+        void AddToFavorites(string userId, long trackId, FavoriteTracksConfig favTracksConfig);
+        Task<List<ClientModels.PlaylistTrack>> GetTracks(long ArtistId, string CurrentUserId);
+        void RenamePlaylist(long playlistId, string newPlaylistName);
     }
 }
